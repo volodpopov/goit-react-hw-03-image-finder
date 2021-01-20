@@ -4,10 +4,11 @@ import ImageGalleryItem from './ImageGalleryItem';
 import Loader from 'react-loader-spinner';
 import Modal from './Modal';
 import Button from './Button';
+import pixabayApi from '../services/pixabay-api';
 
 class ImageGallery extends Component {
   state = {
-    hits: null,
+    hits: [],
     loading: false,
     currentPage: 1,
     showModal: false,
@@ -16,23 +17,43 @@ class ImageGallery extends Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { query } = this.props;
-
-    if (prevProps.query !== query) {
-      this.setState({ loading: true, hits: null });
-      fetch(
-        `https://pixabay.com/api/?q=${query}&page=${this.state.currentPage}&key=18796683-6210221644807583f1ab11642&image_type=photo&orientation=horizontal&per_page=12`,
-      )
-        .then(res => res.json())
-        .then(({ hits }) => this.setState({ hits }))
-        .catch(error => this.setState({ error }))
-        .finally(() => this.setState({ loading: false }));
+    if (prevProps.query !== this.props.query) {
+      this.getDataForGallery();
     }
   }
+
+  getDataForGallery = () => {
+    this.setState(prevState => ({ loading: true, hits: prevState.hits }));
+    pixabayApi
+      .fetchImage(this.props.query, this.state.currentPage)
+      .then(({ hits }) =>
+        this.setState(prevState => ({
+          hits: [...prevState.hits, ...hits],
+          currentPage: prevState.currentPage + 1,
+        })),
+      )
+      .catch(error => this.setState({ error }))
+      .finally(() => this.setState({ loading: false }));
+  };
+
   toggleModal = () => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
     }));
+  };
+
+  loadMore = () => {
+    this.getDataForGallery();
+    this.scrollPageToEnd();
+  };
+
+  scrollPageToEnd = () => {
+    setTimeout(() => {
+      window.scrollBy({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+      });
+    }, 1000);
   };
 
   onClickGalleryItem = (src, alt) => {
@@ -41,12 +62,9 @@ class ImageGallery extends Component {
   };
 
   render() {
-    const { loading, hits, imageForModal, title } = this.state;
+    const { loading, hits, imageForModal, title, showModal } = this.state;
     return (
       <div>
-        {loading && (
-          <Loader type="ThreeDots" color="#00BFFF" height={80} width={80} />
-        )}
         <ul className={s.ImageGallery}>
           {hits && (
             <ImageGalleryItem
@@ -55,8 +73,11 @@ class ImageGallery extends Component {
             />
           )}
         </ul>
-        {hits && <Button />}
-        {this.state.showModal && (
+        {loading && (
+          <Loader type="ThreeDots" color="#00BFFF" height={80} width={80} />
+        )}
+        {hits.length !== 0 && <Button loadMore={this.loadMore} />}
+        {showModal && (
           <Modal onClick={this.onClickGalleryItem}>
             <img src={imageForModal} alt={title} />
           </Modal>
