@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { createPortal } from 'react-dom';
 import s from './ImageFinder.module.css';
 
@@ -13,21 +14,32 @@ export default class Modal extends Component {
     window.removeEventListener('keydown', this.handleKeyDown);
   }
   handleKeyDown = e => {
+    const { onClick } = this.props;
+
     if (e.code === 'Escape') {
-      this.props.onClick();
+      onClick();
     }
   };
   handleBackdropClick = e => {
+    const { onClick } = this.props;
+
     if (e.currentTarget === e.target) {
-      this.props.onClick();
+      onClick();
     }
   };
   render() {
+    const { children } = this.props;
+
     return createPortal(
       <div className={s.Overlay} onClick={this.handleBackdropClick}>
-        <div className={s.Modal}>{this.props.children}</div>
+        <div className={s.Modal}>{children}</div>
       </div>,
       modalRoot,
     );
   }
 }
+
+Modal.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  children: PropTypes.object.isRequired,
+};

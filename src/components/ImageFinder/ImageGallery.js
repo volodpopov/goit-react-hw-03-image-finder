@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import s from './ImageFinder.module.css';
 import ImageGalleryItem from './ImageGalleryItem';
 import Loader from 'react-loader-spinner';
 import Modal from './Modal';
 import Button from './Button';
-import pixabayApi from '../services/pixabay-api';
+import pixabayApi from './services/pixabay-api';
 
 class ImageGallery extends Component {
   state = {
@@ -18,20 +19,33 @@ class ImageGallery extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.query !== this.props.query) {
-      this.getDataForGallery();
+      this.setState(
+        () => {
+          return {
+            currentPage: 1,
+            hits: [],
+          };
+        },
+        () => {
+          this.getDataForGallery();
+        },
+      );
     }
   }
 
   getDataForGallery = () => {
+    const { currentPage } = this.state;
+    const { query } = this.props;
+
     this.setState(prevState => ({ loading: true, hits: prevState.hits }));
     pixabayApi
-      .fetchImage(this.props.query, this.state.currentPage)
-      .then(({ hits }) =>
+      .fetchImage(query, currentPage)
+      .then(({ hits }) => {
         this.setState(prevState => ({
           hits: [...prevState.hits, ...hits],
           currentPage: prevState.currentPage + 1,
-        })),
-      )
+        }));
+      })
       .catch(error => this.setState({ error }))
       .finally(() => this.setState({ loading: false }));
   };
@@ -63,6 +77,7 @@ class ImageGallery extends Component {
 
   render() {
     const { loading, hits, imageForModal, title, showModal } = this.state;
+
     return (
       <div>
         <ul className={s.ImageGallery}>
@@ -86,5 +101,9 @@ class ImageGallery extends Component {
     );
   }
 }
+
+ImageGallery.propTypes = {
+  query: PropTypes.string.isRequired,
+};
 
 export default ImageGallery;

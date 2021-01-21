@@ -1,13 +1,16 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import s from './ImageFinder.module.css';
 
 class ImageGalleryItem extends Component {
   render() {
-    return this.props.hits.map(({ id, webformatURL, largeImageURL, tags }) => (
+    const { hits, onClickGalleryItem } = this.props;
+
+    return hits.map(({ id, webformatURL, largeImageURL, tags }) => (
       <li
         key={id}
         className={s.ImageGalleryItem}
-        onClick={() => this.props.onClickGalleryItem(largeImageURL, tags)}
+        onClick={() => onClickGalleryItem(largeImageURL, tags)}
       >
         <img
           src={webformatURL}
@@ -18,5 +21,9 @@ class ImageGalleryItem extends Component {
     ));
   }
 }
+ImageGalleryItem.propTypes = {
+  onClickGalleryItem: PropTypes.func.isRequired,
+  hits: PropTypes.array.isRequired,
+};
 
 export default ImageGalleryItem;

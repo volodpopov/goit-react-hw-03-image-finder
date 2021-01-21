@@ -5,27 +5,23 @@ import 'react-toastify/dist/ReactToastify.css';
 import Searchbar from './ImageFinder/Searchbar';
 import ImageGallery from './ImageFinder/ImageGallery';
 
-// import Modal from './ImageFinder/Modal';
-
 import s from './ImageFinder/ImageFinder.module.css';
 
 class App extends Component {
   state = {
-    query: '',
+    query: null,
   };
 
   handleSearchSubmit = query => {
     this.setState({ query });
   };
   render() {
+    const { query } = this.state;
+
     return (
       <div className={s.App}>
         <Searchbar onSubmit={this.handleSearchSubmit} />
-        <ImageGallery
-          query={this.state.query}
-          changeShowModal={this.toggleModal}
-        />
-
+        <ImageGallery query={query} />
         <ToastContainer position="top-center" />
       </div>
     );
